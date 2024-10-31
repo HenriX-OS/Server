@@ -1,4 +1,6 @@
-{
+const { addonBuilder, serveHTTP } = require("stremio-addon-sdk");
+
+const manifest = {
     "id": "org.community.redecanaistv",
     "version": "1.0.0",
     "name": "RedeCanaisTV",
@@ -27,4 +29,51 @@
         "configurable": false,
         "configurationRequired": false
     }
-}
+};
+
+const builder = new addonBuilder(manifest);
+
+// Lista de canais disponíveis com URLs
+const canais = [
+    { id: "afazenda", title: "A Fazenda", genre: "Reality Show", url: "https://redecanaistv.ec/player3/ch.php?canal=afazenda" },
+    { id: "noticias", title: "Canal de Notícias", genre: "Notícias", url: "https://redecanaistv.ec/player3/ch.php?canal=noticias" },
+    { id: "esportes", title: "Canal de Esportes", genre: "Esportes", url: "https://redecanaistv.ec/player3/ch.php?canal=esportes" },
+    // Adicione mais canais conforme necessário
+];
+
+builder.defineCatalogHandler(({ type, extra }) => {
+    if (type === "tv") {
+        const filteredCanais = extra && extra.genre
+            ? canais.filter(canal => canal.genre === extra.genre)
+            : canais;
+        const metas = filteredCanais.map(canal => ({
+            id: canal.id,
+            name: canal.title,
+            type: "tv",
+            poster: "https://example.com/channel_poster.png", // Pode ser uma imagem específica para cada canal
+            background: "https://example.com/channel_background.jpg",
+            logo: "https://example.com/channel_logo.png",
+            genre: [canal.genre]
+        }));
+        return Promise.resolve({ metas });
+    }
+    return Promise.resolve({ metas: [] });
+});
+
+builder.defineStreamHandler(({ id }) => {
+    const canal = canais.find(c => c.id === id);
+    if (canal) {
+        return Promise.resolve({
+            streams: [
+                {
+                    title: canal.title,
+                    url: canal.url,
+                    behaviorHints: { notWebReady: true }
+                }
+            ]
+        });
+    }
+    return Promise.resolve({ streams: [] });
+});
+
+serveHTTP(builder.getInterface(), { port: 7000 });
