@@ -1,23 +1,41 @@
 {
-  "id": "com.elfhosted.xtremio",
-  "version": "2.0.0",
-  "name": "Xtremio IPTV | ElfHosted",
-  "logo": "https://elfhosted.com/images/logo.svg",
-  "description": "Xtremio IPTV | ElfHosted",
-  "types": ["movie", "series", "tv", "channel"],
-  "background": "https://raw.githubusercontent.com/mik25/stremaline/main/blownaway.jpg",
-  "resources": ["movie", "series", "tv"],
-  "catalogs": [],
-  "idPrefixes": ["yiptv:"],
+  "id": "community.xtream-codes",
+  "version": "0.2.0",
+  "name": "Xtream Codes",
+  "description": "Use your Xtream Codes account in Stremio to watch Movies, Series and Live TV",
+  "logo": "https://stremio-xtream-codes.vercel.app/logo.png",
+  "idPrefixes": ["xcid"],
+  "catalogs": [
+    {
+      "type": "movie",
+      "id": "xc",
+      "name": "Xtream Codes",
+      "extra": [{"name": "search", "isRequired": false}]
+    },
+    {
+      "type": "series",
+      "id": "xc",
+      "name": "Xtream Codes",
+      "extra": [{"name": "search", "isRequired": false}]
+    },
+    {
+      "type": "tv",
+      "id": "xc",
+      "name": "Xtream Codes",
+      "extra": [{"name": "search", "isRequired": false}]
+    }
+  ],
+  "resources": ["catalog", "stream", "meta"],
+  "types": ["movie", "series", "tv"],
   "behaviorHints": {
     "configurable": true,
     "configurationRequired": true
   },
-  "proxy": {
-    "enabled": true,
-    "type": "auto",  // "auto" para aceitar http, https, socks5, etc.
-    "url": "http://20.206.106.192:8123",  // URL do proxy
-    "username": "",  // se necessário, insira o nome de usuário
-    "password": ""   // se necessário, insira a senha
-  }
+  "dev": {
+    "environment": "production",
+    "deploymentId": "dpl_HjEohkcUDBLmrrcN2ikSRATGu4bB",
+    "branch": "main",
+    "commit": "5016bb586566874568b27bddee6f052ef592df14"
+  },
+  "proxy": "http://20.206.106.192:8123"  // Adicionando a configuração do proxy aqui
 }
