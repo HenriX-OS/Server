@@ -1,50 +1,23 @@
 {
-  "id": "com.henrixtv.iptv",
-  "version": "1.0.0",
-  "name": "Minha Lista IPTV",
-  "description": "Um addon para acessar minha lista IPTV com suporte a proxy.",
-  "resources": [
-    "catalog",
-    "stream"
-  ],
-  "types": [
-    "movie",
-    "series"
-  ],
-  "catalogs": [
-    {
-      "type": "series",
-      "id": "iptv_series",
-      "name": "Minha Lista IPTV - Séries",
-      "items": [
-        {
-          "type": "series",
-          "id": "iptv_series_1",
-          "name": "Minha Série",
-          "poster": "URL_DO_POSTER",        // Substitua pela URL do poster da série
-          "background": "URL_DO_FUNDO"      // Substitua pela URL do fundo da série
-        }
-      ]
-    }
-  ],
-  "streams": [
-    {
-      "id": "stream_1",
-      "type": "stream",
-      "url": "https://raw.githubusercontent.com/HenriX-OS/Server/refs/heads/main/Listas",
-      "proxy": {
-        "enabled": true,
-        "type": "http",
-        "url": "http://20.206.106.192:8123" // Substitua pela URL do seu proxy, se necessário
-      }
-    }
-  ],
-  "developer": {
-    "name": "Henrique",
-    "email": "seu_email@example.com"     // Substitua pelo seu email real
+  "id": "com.elfhosted.xtremio",
+  "version": "2.0.0",
+  "name": "Xtremio IPTV | ElfHosted",
+  "logo": "https://elfhosted.com/images/logo.svg",
+  "description": "Xtremio IPTV | ElfHosted",
+  "types": ["movie", "series", "tv", "channel"],
+  "background": "https://raw.githubusercontent.com/mik25/stremaline/main/blownaway.jpg",
+  "resources": ["movie", "series", "tv"],
+  "catalogs": [],
+  "idPrefixes": ["yiptv:"],
+  "behaviorHints": {
+    "configurable": true,
+    "configurationRequired": true
   },
-  "homepage": "https://seusite.com",        // Substitua pela sua homepage real
-  "support": {
-    "url": "https://seusite.com/suporte"   // Substitua pelo link de suporte real
+  "proxy": {
+    "enabled": true,
+    "type": "auto",  // "auto" para aceitar http, https, socks5, etc.
+    "url": "http://20.206.106.192:8123",  // URL do proxy
+    "username": "",  // se necessário, insira o nome de usuário
+    "password": ""   // se necessário, insira a senha
   }
 }
