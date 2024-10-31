@@ -1,4 +1,6 @@
 const { addonBuilder, serveHTTP } = require("stremio-addon-sdk");
+const axios = require("axios");
+const https = require("https");
 
 const manifest = {
     "id": "org.community.redecanaistv",
@@ -32,14 +34,43 @@ const manifest = {
 };
 
 const builder = new addonBuilder(manifest);
+let canais = [];
 
-// Lista de canais disponíveis com URLs
-const canais = [
-    { id: "afazenda", title: "A Fazenda", genre: "Reality Show", url: "https://redecanaistv.ec/player3/ch.php?canal=afazenda" },
-    { id: "noticias", title: "Canal de Notícias", genre: "Notícias", url: "https://redecanaistv.ec/player3/ch.php?canal=noticias" },
-    { id: "esportes", title: "Canal de Esportes", genre: "Esportes", url: "https://redecanaistv.ec/player3/ch.php?canal=esportes" },
-    // Adicione mais canais conforme necessário
-];
+// URL do proxy
+const proxyURL = "http://20.206.106.192:8123/"; // Inclua o protocolo HTTP ou HTTPS
+
+// Configuração do Axios para aceitar todos os certificados
+const axiosInstance = axios.create({
+    httpsAgent: new https.Agent({  
+        rejectUnauthorized: false // Aceita todos os certificados, incluindo inválidos
+    })
+});
+
+// Carrega a lista M3U8 e extrai os canais
+async function carregarListaM3U8() {
+    try {
+        const response = await axiosInstance.get("https://raw.githubusercontent.com/HenriX-OS/Server/refs/heads/main/Listas");
+        const listaM3U8 = response.data;
+
+        // Processa a lista M3U8 para extrair os canais
+        const regex = /#EXTINF:-1.*tvg-name="([^"]+)".*\n(.+)/g;
+        let match;
+        while ((match = regex.exec(listaM3U8)) !== null) {
+            const [_, title, url] = match;
+            canais.push({
+                id: title.toLowerCase().replace(/\s+/g, "_"), // ID baseado no nome do canal
+                title,
+                genre: "Geral", // Categoria padrão (pode ser ajustada)
+                url
+            });
+        }
+    } catch (error) {
+        console.error("Erro ao carregar a lista M3U8:", error);
+    }
+}
+
+// Carrega a lista ao iniciar o addon
+carregarListaM3U8();
 
 builder.defineCatalogHandler(({ type, extra }) => {
     if (type === "tv") {
@@ -50,7 +81,7 @@ builder.defineCatalogHandler(({ type, extra }) => {
             id: canal.id,
             name: canal.title,
             type: "tv",
-            poster: "https://example.com/channel_poster.png", // Pode ser uma imagem específica para cada canal
+            poster: "https://example.com/channel_poster.png",
             background: "https://example.com/channel_background.jpg",
             logo: "https://example.com/channel_logo.png",
             genre: [canal.genre]
@@ -63,11 +94,13 @@ builder.defineCatalogHandler(({ type, extra }) => {
 builder.defineStreamHandler(({ id }) => {
     const canal = canais.find(c => c.id === id);
     if (canal) {
+        // Modifica a URL do canal para passar pelo proxy
+        const proxiedUrl = `${proxyURL}${encodeURIComponent(canal.url)}`;
         return Promise.resolve({
             streams: [
                 {
                     title: canal.title,
-                    url: canal.url,
+                    url: proxiedUrl,
                     behaviorHints: { notWebReady: true }
                 }
             ]
