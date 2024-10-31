@@ -1,112 +1,50 @@
-const { addonBuilder, serveHTTP } = require("stremio-addon-sdk");
-const axios = require("axios");
-const https = require("https");
-
-const manifest = {
-    "id": "org.community.redecanaistv",
-    "version": "1.0.0",
-    "name": "RedeCanaisTV",
-    "logo": "https://example.com/logo.png",
-    "background": "https://example.com/background.jpg",
-    "description": "Addon do Stremio para assistir RedeCanaisTV diretamente, sem precisar do navegador.",
-    "types": ["tv"],
-    "resources": ["stream", "catalog"],
-    "catalogs": [
+{
+  "id": "com.henrixtv.iptv",
+  "version": "1.0.0",
+  "name": "Minha Lista IPTV",
+  "description": "Um addon para acessar minha lista IPTV com suporte a proxy.",
+  "resources": [
+    "catalog",
+    "stream"
+  ],
+  "types": [
+    "movie",
+    "series"
+  ],
+  "catalogs": [
+    {
+      "type": "series",
+      "id": "iptv_series",
+      "name": "Minha Lista IPTV - Séries",
+      "items": [
         {
-            "id": "redecanaistv.catalog",
-            "name": "RedeCanaisTV",
-            "type": "tv",
-            "extra": [
-                {
-                    "name": "genre",
-                    "options": ["Notícias", "Esportes", "Filmes", "Séries", "Documentários", "Música"],
-                    "optionsLimit": 10,
-                    "isRequired": false
-                }
-            ]
+          "type": "series",
+          "id": "iptv_series_1",
+          "name": "Minha Série",
+          "poster": "URL_DO_POSTER",        // Substitua pela URL do poster da série
+          "background": "URL_DO_FUNDO"      // Substitua pela URL do fundo da série
         }
-    ],
-    "idPrefixes": ["tv"],
-    "behaviorHints": {
-        "configurable": false,
-        "configurationRequired": false
+      ]
     }
-};
-
-const builder = new addonBuilder(manifest);
-let canais = [];
-
-// URL do proxy
-const proxyURL = "http://20.206.106.192:8123/"; // Inclua o protocolo HTTP ou HTTPS
-
-// Configuração do Axios para aceitar todos os certificados
-const axiosInstance = axios.create({
-    httpsAgent: new https.Agent({  
-        rejectUnauthorized: false // Aceita todos os certificados, incluindo inválidos
-    })
-});
-
-// Carrega a lista M3U8 e extrai os canais
-async function carregarListaM3U8() {
-    try {
-        const response = await axiosInstance.get("https://raw.githubusercontent.com/HenriX-OS/Server/refs/heads/main/Listas");
-        const listaM3U8 = response.data;
-
-        // Processa a lista M3U8 para extrair os canais
-        const regex = /#EXTINF:-1.*tvg-name="([^"]+)".*\n(.+)/g;
-        let match;
-        while ((match = regex.exec(listaM3U8)) !== null) {
-            const [_, title, url] = match;
-            canais.push({
-                id: title.toLowerCase().replace(/\s+/g, "_"), // ID baseado no nome do canal
-                title,
-                genre: "Geral", // Categoria padrão (pode ser ajustada)
-                url
-            });
-        }
-    } catch (error) {
-        console.error("Erro ao carregar a lista M3U8:", error);
+  ],
+  "streams": [
+    {
+      "id": "stream_1",
+      "type": "stream",
+      "url": "https://raw.githubusercontent.com/HenriX-OS/Server/refs/heads/main/Listas",
+      "proxy": {
+        "enabled": true,
+        "type": "http",
+        "url": "http://20.206.106.192:8123" // Substitua pela URL do seu proxy, se necessário
+      }
     }
+  ],
+  "developer": {
+    "name": "Henrique",
+    "email": "seu_email@example.com"     // Substitua pelo seu email real
+  },
+  "homepage": "https://seusite.com",        // Substitua pela sua homepage real
+  "support": {
+    "url": "https://seusite.com/suporte"   // Substitua pelo link de suporte real
+  }
 }
-
-// Carrega a lista ao iniciar o addon
-carregarListaM3U8();
-
-builder.defineCatalogHandler(({ type, extra }) => {
-    if (type === "tv") {
-        const filteredCanais = extra && extra.genre
-            ? canais.filter(canal => canal.genre === extra.genre)
-            : canais;
-        const metas = filteredCanais.map(canal => ({
-            id: canal.id,
-            name: canal.title,
-            type: "tv",
-            poster: "https://example.com/channel_poster.png",
-            background: "https://example.com/channel_background.jpg",
-            logo: "https://example.com/channel_logo.png",
-            genre: [canal.genre]
-        }));
-        return Promise.resolve({ metas });
-    }
-    return Promise.resolve({ metas: [] });
-});
-
-builder.defineStreamHandler(({ id }) => {
-    const canal = canais.find(c => c.id === id);
-    if (canal) {
-        // Modifica a URL do canal para passar pelo proxy
-        const proxiedUrl = `${proxyURL}${encodeURIComponent(canal.url)}`;
-        return Promise.resolve({
-            streams: [
-                {
-                    title: canal.title,
-                    url: proxiedUrl,
-                    behaviorHints: { notWebReady: true }
-                }
-            ]
-        });
-    }
-    return Promise.resolve({ streams: [] });
-});
-
-serveHTTP(builder.getInterface(), { port: 7000 });
