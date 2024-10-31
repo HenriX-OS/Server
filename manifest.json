@@ -1,0 +1,33 @@
+const { addonBuilder, serveHTTP } = require("stremio-addon-sdk");
+
+const manifest = {
+    id: "com.redecanaistv",
+    version: "1.0.0",
+    name: "Rede Canais TV",
+    description: "Addon para assistir canais Rede Canais no Stremio",
+    resources: ["stream"],
+    types: ["tv"],
+    idPrefixes: ["rc"]
+};
+
+const builder = new addonBuilder(manifest);
+
+// Define uma função de stream para a URL da lista M3U
+builder.defineStreamHandler(async ({ type, id }) => {
+    if (type === "tv") {
+        return {
+            streams: [
+                {
+                    title: "Rede Canais TV",
+                    url: "https://bit.ly/redecanaistv20",
+                    isFree: true
+                }
+            ]
+        };
+    } else {
+        return { streams: [] };
+    }
+});
+
+// Inicie o servidor HTTP para o addon
+serveHTTP(builder.getInterface(), { port: 7000 });
